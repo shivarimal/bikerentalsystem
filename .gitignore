@@ -1,0 +1,85 @@
+# Dependency directories
+node_modules/
+/.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+/dist
+/build
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing
+/coverage
+
+# Production build files
+/Frontend/dist
+/Frontend/build
+/Backend/dist
+/Backend/build
+
+# Temporary files
+.tmp/
+.temp/
+
+# Cache
+.cache/
+.parcel-cache/
+.vite/
+.vite/deps_temp*/
+
+# TypeScript
+*.tsbuildinfo
+
+# Ignore compiled JavaScript files in TypeScript project directories
+/Backend/**/*.js
+/Backend/**/*.js.map
+/Backend/**/*.d.ts
+
+# Frontend compiled files (not needed as Vite handles this differently)
+# But we'll ignore any accidental TypeScript compilation outputs
+/Frontend/**/*.js.map
+/Frontend/**/*.d.ts
+
+# Keep configuration files
+!*.config.js
+!vite.config.ts
+!tsconfig*.json
+
+# Logs
+logs
+*.log
+
+# Uploaded files
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/bikeImages/
+/uploads/bikeImages/*
+!/uploads/bikeImages/.gitkeep
+
+# Backend uploads
+/Backend/uploads/*
+!/Backend/uploads/.gitkeep
+!/Backend/uploads/bikeImages/
+/Backend/uploads/bikeImages/*
+!/Backend/uploads/bikeImages/.gitkeep
