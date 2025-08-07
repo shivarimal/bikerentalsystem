@@ -13,14 +13,14 @@ const Footer: React.FC = (): JSX.Element => {
                     <div className='col-12 col-md-4 mt-3 mt-md-0'>
                         <h5>Contact</h5>
                         <p>Phone: 1234567890</p>
-                        <p>Email: subratachowdhury7000@gmail.com</p>
+                        <p>Email: info@bikerentalnepal.com</p>
                     </div>
                     <div className='col-12 col-md-4 mt-3 mt-md-0'>
                         <h5>Follow Us</h5>
-                        <a href='#'>
-                            <img width={30} height={30} className='me-2' src='linkedin.svg' />
-                        </a>
-                        <a href='#'>
+                        {/* <a href='#'> */}
+                            {/* <img width={30} height={30} className='me-2' src='linkedin.svg' /> */}
+                        {/* </a> */}
+                        <a href='https://github.com/shivarimal'>
                             <img width={30} height={30} className='me-2' src='github.svg' />
                         </a>
                         <a href='#'>

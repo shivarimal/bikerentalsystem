@@ -6,9 +6,8 @@ import { User } from "../Types";
 const Menubar: React.FC = (): JSX.Element => {
     const menus = [
         { name: 'Home', link: '/Home' },
-        { name: 'About', link: '/' },
-        { name: 'Footer', link: '/' },
-        { name: 'Contact', link: '/' },
+        { name: 'About', link: '/about' },
+        { name: 'Contact', link: '/contact' },
     ]
 
     const [showMenus, setShowMenus] = useState(false);

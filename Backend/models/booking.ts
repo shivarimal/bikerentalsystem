@@ -8,6 +8,9 @@ export interface IBooking extends Document {
     startTime: Date;
     endTime: Date;
     status: string;
+    paymentId?: string;
+    paymentAmount?: number;
+    paymentStatus?: string;
 }
 
 const bookingSchema = new Schema<IBooking>({
@@ -17,6 +20,9 @@ const bookingSchema = new Schema<IBooking>({
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
     status: { type: String, enum: ['booked', 'returned', 'canceled'], default: 'booked' },
+    paymentId: { type: String },
+    paymentAmount: { type: Number },
+    paymentStatus: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
 });
 
 const Booking = model<IBooking>('Booking', bookingSchema);

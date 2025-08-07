@@ -5,6 +5,9 @@ import HomePage from './components/HomePage'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ProfilePage from './components/ProfilePage'
 import AdminPage from './components/AdminPage/AdminPage'
+import AboutPage from './components/AboutPage'
+import ContactPage from './components/ContactPage'
+import PaymentPage from './components/PaymentPage'
 
 const App: React.FC = (): JSX.Element => {
     return (
@@ -17,6 +20,9 @@ const App: React.FC = (): JSX.Element => {
                     <Route path="/" element={<LogInPage />} />
 
                     <Route path="/Admin" element={<AdminPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/payment" element={<PaymentPage />} />
                 </Routes>
             </BrowserRouter>
         </div >

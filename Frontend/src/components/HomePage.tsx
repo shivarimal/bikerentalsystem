@@ -16,6 +16,7 @@ const HomePage: React.FC = (): JSX.Element => {
             if (bikesData.length === 0) {
                 return;
             }
+            console.log(bikesData)
             setAlertData(bikesData);
             setShowAlert(true);
             setTimeout(() => {
@@ -25,6 +26,7 @@ const HomePage: React.FC = (): JSX.Element => {
     }, [])
     return (
         <>
+        
             {showAlert && <div
                 className='position-fixed t-0 mt-4 d-flex flex-column'
                 style={{ left: '50%', transform: 'translate(-50%,0)', zIndex: 20 }}>

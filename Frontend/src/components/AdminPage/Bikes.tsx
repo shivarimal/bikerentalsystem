@@ -51,7 +51,7 @@ const AdminBikeCard: React.FC<Bike> = ({
     imageURL,
 }): JSX.Element => {
     imageURL = imageURL ? ("http://localhost:5000/uploads/" + imageURL) : 'bike.svg';
-
+   
     function onSubmitHandler(bikeData: BikeDetailsInput) {
         const formData = new FormData();
 

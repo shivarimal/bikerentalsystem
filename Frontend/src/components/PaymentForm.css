@@ -1,0 +1,49 @@
+.payment-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.card-element-container {
+  background-color: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.map-container {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.payment-form .form-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.payment-form .btn {
+  font-weight: 500;
+  padding: 10px 20px;
+}
+
+.payment-details {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+}
+
+.payment-details p {
+  margin-bottom: 8px;
+}
+
+.payment-details strong {
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .payment-container {
+    padding: 0 15px;
+  }
+}

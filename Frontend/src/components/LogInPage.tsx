@@ -35,7 +35,7 @@ const LogInPage: React.FC = (): JSX.Element => {
             <div className='log-in-page form-container'>
                 <h1>
                     <p>Welcome to,</p>
-                    <p className='fw-bolder text-primary'>Bike Booker</p>
+                    <p className='fw-bolder text-primary'>Bike Rental</p>
                 </h1>
                 <LogInAndSingUpForm onLogInBtnClick={loginUser} onSignUpBtnClick={registerUser} />
             </div>

@@ -22,7 +22,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         <div className='log-in-page form-container'>
             <h1>
                 <p>Welcome to,</p>
-                <p className='fw-bolder text-primary'>Bike Booker Admin</p>
+                <p className='fw-bolder text-primary'>Bike Rental Admin</p>
             </h1>
             <LogInAndSingUpForm onLogInBtnClick={loginUser} onSignUpBtnClick={async () => { }} showSignUpForm={false} />
         </div>
