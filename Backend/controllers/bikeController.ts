@@ -61,7 +61,7 @@ export const getBikesByIndexAndLimit = async (req: Request, res: Response) => {
     }
 
     try {
-        const bikes = await Bike.find({ ...filterData }).skip(parseInt(index)).limit(6);
+        const bikes = await Bike.find({ ...filterData }).skip(parseInt(index as string)).limit(6);
         res.status(200).json(bikes);
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });

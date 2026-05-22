@@ -202,7 +202,7 @@ export const getBookingByIndex = async (req: Request, res: Response) => {
             return;
         }
 
-    const index = (parseInt(pageNo) - 1) * limit
+    const index = (parseInt(pageNo as string) - 1) * limit
     try {
         const bookings = await Booking.find(userId ? { userId } : {}).skip(index).limit(limit).sort({ endTime: -1 }).populate('bike');
         let usersData = []
