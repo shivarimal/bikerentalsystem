@@ -2,14 +2,10 @@ import express from 'express';
 import { handleWebhook } from '../controllers/webhookController';
 import authenticateToken from '../middlewares/auth';
 import { createPaymentIntent } from '../controllers/paymentController';
-import Stripe from 'stripe';
 import dotenv from 'dotenv';
+import { getStripeClient } from '../config/stripe';
 dotenv.config();
 const router = express.Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil', // or whatever Stripe dashboard shows
-  
-});
 // Create a payment intent
 router.post('/create-payment-intent', authenticateToken, async (req, res, next) => {
   try {
@@ -21,6 +17,13 @@ router.post('/create-payment-intent', authenticateToken, async (req, res, next) 
 // Handle successful payment and create booking
 router.post('/payment-success', authenticateToken, async (req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> => {
   try {
+    const stripe = getStripeClient();
+
+    if (!stripe) {
+      res.status(500).json({ message: 'Stripe secret key is not configured' });
+      return;
+    }
+
     const { paymentIntentId, pickupLocation } = req.body;
     const userId = req.body.user?.id;
 

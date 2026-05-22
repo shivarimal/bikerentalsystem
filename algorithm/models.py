@@ -57,3 +57,33 @@ class HealthResponse(BaseModel):
     status: str
     message: str
     timestamp: datetime
+
+
+class BikeInfo(BaseModel):
+    bike_id: str
+    lat: Optional[float]
+    lon: Optional[float]
+    price: Optional[float]
+    rating: Optional[float]
+    bookings_count: Optional[int]
+    extra: Optional[Dict[str, Any]] = None
+
+
+class RecommendRequest(BaseModel):
+    """Request model for recommender endpoints"""
+    user_id: Optional[str] = None
+    user_location: Optional[Dict[str, float]] = None  # {"lat":.., "lon":..}
+    bikes: List[Dict[str, Any]] = []
+    top_n: Optional[int] = 5
+
+
+class RecommendationItem(BaseModel):
+    bike_id: str
+    score: float
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class RecommendResponse(BaseModel):
+    status: str
+    recommendations: List[RecommendationItem]
+    timestamp: datetime

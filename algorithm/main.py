@@ -11,6 +11,8 @@ from models import (
     TrainRequest, PredictRequest, TrainResponse,
     PredictResponse, ModelInfoResponse, HealthResponse
 )
+from models import RecommendRequest, RecommendResponse, RecommendationItem
+from recommender_heuristic import recommend_heuristic
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -298,3 +300,19 @@ async def load_model_from_file(filepath: str = "saved_model.pkl"):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to load model: {str(e)}"
         )
+
+
+@app.post("/recommend/heuristic", response_model=RecommendResponse)
+async def recommend_heuristic_endpoint(request: RecommendRequest):
+    """Return top-N bikes using a simple heuristic ranking.
+
+    Request should include `bikes` (list of bike metadata). Optionally `user_location` and `top_n`.
+    """
+    try:
+        req_json = request.dict()
+        recs = recommend_heuristic(req_json)
+
+        items = [RecommendationItem(bike_id=str(r['bike_id']), score=r['score'], metadata=r.get('metadata')) for r in recs]
+        return RecommendResponse(status='success', recommendations=items, timestamp=datetime.now())
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Recommendation failed: {e}")
