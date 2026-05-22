@@ -3,6 +3,7 @@ import Users from './Users';
 import Bikes from './Bikes';
 import LoginPage from './LoginPage';
 import Booking from './Booking';
+import Algorithm from './Algorithm';
 
 type Tabs = {
     name: string;
@@ -45,6 +46,10 @@ const AdminPage: React.FC<AdminPageProp> = ({ logout }): JSX.Element => {
         {
             name: 'Bookings',
             component: <Booking />
+        },
+        {
+            name: 'AI Algorithm',
+            component: <Algorithm />
         }
     ]
     return (

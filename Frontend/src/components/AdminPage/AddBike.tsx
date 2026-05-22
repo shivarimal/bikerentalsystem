@@ -54,6 +54,8 @@ interface BikeDetailsModelProps {
     submitBtnLabel?: string;
 }
 
+import { predictPrice } from '../../scripts/API Calls/algorithmApiCalls';
+
 export const BikeDetailsModel: React.FC<BikeDetailsModelProps> = ({ heading = "Bike Model", id, bikeDetails, onSubmit = () => { }, submitBtnLabel = "SUBMIT" }): JSX.Element => {
     const [bikeData, setBikeData] = useState<BikeDetailsInput>({
         _id: bikeDetails._id || "",
@@ -68,6 +70,26 @@ export const BikeDetailsModel: React.FC<BikeDetailsModelProps> = ({ heading = "B
         image: null
     });
     const [imagePreview, setImagePreview] = useState<string | ArrayBuffer | null>(bikeDetails.imageURL || 'bike.svg');
+    const [isPredicting, setIsPredicting] = useState<boolean>(false);
+
+    const handleAutoPredict = async () => {
+        if (!bikeData.cc || !bikeData.horsePower) {
+            alert('Please specify the CC and Horse Power of the bike first to predict price.');
+            return;
+        }
+
+        setIsPredicting(true);
+        try {
+            const data = await predictPrice(bikeData.cc, bikeData.horsePower);
+            if (data && data.predictedPrice) {
+                setBikeData(prev => ({ ...prev, pricePerHour: data.predictedPrice }));
+            }
+        } catch (error: any) {
+            alert(error.message || 'Failed to predict price. Make sure the AI algorithm is running and trained.');
+        } finally {
+            setIsPredicting(false);
+        }
+    };
 
     const handleBikeDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -97,8 +119,11 @@ export const BikeDetailsModel: React.FC<BikeDetailsModelProps> = ({ heading = "B
                 <label className='form-label'>
                     <input type='text' className='m-0 form-control' name="bikeModel" value={bikeData.bikeModel} onChange={handleBikeDataChange} placeholder="Bike Model" />
                 </label>
-                <label className='form-label'>
-                    <input type='text' className='m-0 form-control' name="pricePerHour" value={bikeData.pricePerHour} onChange={handleBikeDataChange} placeholder="Price (/hr)" />
+                <label className='form-label d-flex align-items-center gap-2 m-0 mb-3'>
+                    <input type='text' className='m-0 form-control flex-grow-1' name="pricePerHour" value={bikeData.pricePerHour} onChange={handleBikeDataChange} placeholder="Price (/hr)" />
+                    <button type="button" className='btn btn-warning btn-sm whitespace-nowrap' onClick={handleAutoPredict} disabled={isPredicting}>
+                        {isPredicting ? 'Predicting...' : '✨ AI Predict'}
+                    </button>
                 </label>
                 <div className="form-check d-flex align-items-center ps-1 mb-2">
                     <label className="form-check-label me-2" htmlFor='isAvailable'>Is Available</label>

@@ -3,6 +3,7 @@ import { getBookingByPage, getBookingCount } from '../../scripts/API Calls/booki
 import Pages from '../Pages';
 import { User, Booking } from '../../Types'
 import Model from '../Model';
+import MapComponent from '../MapComponent';
 
 interface BookingProps {
     // Define your props here
@@ -36,11 +37,6 @@ const BookingComp: React.FC<BookingProps> = () => {
     return (
         <div>
             <div className='d-flex'>
-                {/* <div className='input-group mb-3'>
-                    <input type='text' className='form-control border-dark bg-deep-white' placeholder='Search by Bike Model' value={searchBookingIdData} onChange={e => setSearchBookingIdData(e.target.value)} />
-                    <button className='btn btn-dark' type='button' id='button-addon2'>Search</button>
-                </div> */}
-
                 <div className='input-group mb-3'>
                     <input type='text' className='form-control border-dark bg-deep-white' placeholder='Search by User ID' value={searchUserIdData} onChange={e => setSearchUserIdData(e.target.value)} />
                     <button className='btn btn-dark' type='button' onClick={() => downloadBookings(1)}>Search</button>
@@ -111,6 +107,19 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, user }) => {
                         <div><span style={{ fontWeight: 500 }}>End Time:</span> {booking.endTime.split('T')[0]}</div>
                         <div><span style={{ fontWeight: 500 }}>Status:</span> {booking.status}</div>
                     </div>
+                    
+                    {booking.pickupLocation && (
+                        <div className='mt-3 w-100'>
+                            <h5>Pickup Location:</h5>
+                            <MapComponent 
+                                markerPosition={booking.pickupLocation} 
+                                height="200px" 
+                            />
+                            <div className='text-muted small mt-1'>
+                                Lat: {booking.pickupLocation.lat.toFixed(6)}, Lng: {booking.pickupLocation.lng.toFixed(6)}
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="modal-footer mx-auto">
                     <button

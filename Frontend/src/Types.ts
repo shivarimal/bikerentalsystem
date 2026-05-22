@@ -37,11 +37,13 @@ export type Booking = {
     startTime: Date | string;
     endTime: Date | string;
     status: string;
+    pickupLocation?: { lat: number; lng: number };
 }
 
 export type BookingData = Bike & {
     startTime: Date;
     endTime: Date;
+    pickupLocation?: { lat: number; lng: number };
 }
 
 // Type for Filter

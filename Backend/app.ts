@@ -5,6 +5,7 @@ import userRoutes from './routes/userRoutes';
 import bikeRoutes from './routes/bikeRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import paymentRoutes from './routes/paymentRoutes';
+import algorithmRoutes from './routes/algorithmRoutes';
 
 import config from './config/config';
 import cors from 'cors';
@@ -32,6 +33,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/bikes', bikeRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/algorithm', algorithmRoutes);
 
 // Special handling for Stripe webhook
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
