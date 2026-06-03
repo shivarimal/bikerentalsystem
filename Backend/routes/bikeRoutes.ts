@@ -1,5 +1,5 @@
 import express from 'express';
-import { getBikesByIndexAndLimit, getBikeCount, createBike, deleteBike, getTypes, updateBike } from '../controllers/bikeController';
+import { getBikesByIndexAndLimit, getBikeCount, createBike, deleteBike, getRecommendedBikes, getTypes, updateBike } from '../controllers/bikeController';
 import authMiddleware from '../middlewares/auth';
 import multer from 'multer';
 import path from 'path';
@@ -18,6 +18,7 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
+router.get('/recommendations', getRecommendedBikes);
 router.post('/', authMiddleware, getBikeCount);
 router.get('/', getTypes);
 router.post('/:index', authMiddleware, getBikesByIndexAndLimit);

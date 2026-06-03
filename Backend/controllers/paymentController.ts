@@ -2,15 +2,17 @@ import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import Booking from '../models/booking';
 import Bike from '../models/bike';
-
-// Initialize Stripe with the secret key from environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil',
-});
+import { getStripeClient } from '../config/stripe';
 
 // Create a payment intent for a booking
 export const createPaymentIntent = async (req: Request, res: Response) => {
   try {
+    const stripe = getStripeClient();
+
+    if (!stripe) {
+      return res.status(500).json({ error: 'Stripe secret key is not configured' });
+    }
+
     const { bikeId, startTime, endTime } = req.body;
     const userId = req.body.user.id;
 
@@ -75,9 +77,14 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
 // Handle successful payment and create booking
 export const handlePaymentSuccess = async (req: Request, res: Response) => {
   try {
-    const { paymentIntentId } = req.body;
-    const userId = req.body.user.id;
+    const stripe = getStripeClient();
 
+    if (!stripe) {
+      return res.status(500).json({ error: 'Stripe secret key is not configured' });
+    }
+
+    const { paymentIntentId } = req.body;
+    const userId = (req as any).user?.id; 
     // Retrieve the payment intent to get metadata
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     

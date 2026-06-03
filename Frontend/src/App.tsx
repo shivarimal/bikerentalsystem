@@ -2,6 +2,7 @@ import './App.css'
 import React from 'react'
 import LogInPage from './components/LogInPage'
 import HomePage from './components/HomePage'
+import RecommendationPage from './components/RecommendationPage'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ProfilePage from './components/ProfilePage'
 import AdminPage from './components/AdminPage/AdminPage'
@@ -16,6 +17,7 @@ const App: React.FC = (): JSX.Element => {
             <BrowserRouter>
                 <Routes>
                     <Route path="/Home" element={<HomePage />} />
+                    <Route path="/recommendations" element={<RecommendationPage />} />
                     <Route path="/Profile" element={<ProfilePage />} />
                     <Route path="/" element={<LogInPage />} />
 

@@ -61,7 +61,7 @@ export const getBikesByIndexAndLimit = async (req: Request, res: Response) => {
     }
 
     try {
-        const bikes = await Bike.find({ ...filterData }).skip(parseInt(index)).limit(6);
+        const bikes = await Bike.find({ ...filterData }).skip(parseInt(index as string)).limit(6);
         res.status(200).json(bikes);
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
@@ -79,6 +79,19 @@ export const getBikeById = async (req: Request, res: Response) => {
         }
         res.status(200).json(bike);
     } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getRecommendedBikes = async (req: Request, res: Response) => {
+    try {
+        const bikes = await Bike.aggregate([
+            { $match: { isAvailable: true } },
+            { $sample: { size: 4 } }
+        ]);
+        res.status(200).json(bikes);
+    } catch (error) {
+        console.error('Error fetching recommended bikes:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

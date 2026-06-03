@@ -41,7 +41,7 @@ export const BikeCardsContainer: React.FC<BikeCardsContainerProp> = ({
                         ))
                 }
             </div>
-            <Pages onPageChange={onPageChange} noOfPages={noOfPages} />
+            {noOfPages !== undefined && <Pages onPageChange={onPageChange} noOfPages={noOfPages} />}
         </div>
     )
 }

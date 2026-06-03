@@ -6,6 +6,7 @@ import { User } from "../Types";
 const Menubar: React.FC = (): JSX.Element => {
     const menus = [
         { name: 'Home', link: '/Home' },
+        { name: 'Recommendation', link: '/recommendations' },
         { name: 'About', link: '/about' },
         { name: 'Contact', link: '/contact' },
     ]

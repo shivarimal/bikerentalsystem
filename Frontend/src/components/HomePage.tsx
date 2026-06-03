@@ -38,7 +38,6 @@ const HomePage: React.FC = (): JSX.Element => {
                                 className='btn-close cursor-pointer ms-2'
                                 data-bs-dismiss="alert"
                                 aria-label="Close"></div>
-                            {/* <div className={'bg-danger alert-time-bar'}></div> */}
                         </div>
                     ))
                 }

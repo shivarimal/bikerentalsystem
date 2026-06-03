@@ -1,0 +1,37 @@
+.recommendation-page-container {
+    width: min(95%, 1200px);
+    margin: 2rem auto;
+    padding: 0 1rem;
+    min-height: 60vh;
+}
+
+.recommendation-page-heading {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.25rem;
+}
+
+.recommendation-page-subtitle {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.recommendation-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.recommendation-empty {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #6c757d;
+}
+
+.recommendation-empty h4 {
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}

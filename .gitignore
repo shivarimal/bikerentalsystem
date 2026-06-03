@@ -83,3 +83,7 @@ logs
 !/Backend/uploads/bikeImages/
 /Backend/uploads/bikeImages/*
 !/Backend/uploads/bikeImages/.gitkeep
+venv
+node_modules
+uploads
+Backend/node_modules

@@ -72,7 +72,7 @@ const Algorithm: React.FC = (): JSX.Element => {
                                         <div className="mb-3">
                                             <strong>Weights (CC, HP): </strong>
                                             <span>
-                                                [{modelInfo.model_info.weights.map((w: number) => w.toFixed(4)).join(', ')}]
+                                                [{modelInfo.model_info.weights.map((w: number | null) => w !== null ? w.toFixed(4) : 'N/A').join(', ')}]
                                             </span>
                                         </div>
                                     )}
@@ -148,7 +148,7 @@ const Algorithm: React.FC = (): JSX.Element => {
                             {modelInfo.model_info.loss_history.map((loss: number, index: number) => (
                                 <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                                     Iteration n-{modelInfo.model_info.loss_history.length - index}
-                                    <span className="badge bg-primary rounded-pill">{loss.toFixed(6)}</span>
+                                    <span className="badge bg-primary rounded-pill">{loss !== null ? loss.toFixed(6) : 'N/A'}</span>
                                 </li>
                             ))}
                         </ul>

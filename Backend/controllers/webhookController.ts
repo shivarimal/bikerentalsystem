@@ -2,18 +2,23 @@ import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import Booking from '../models/booking';
 import Bike from '../models/bike';
-import dotenv from 'dotenv';
-dotenv.config();
+import { getStripeClient } from '../config/stripe';
 
-// Initialize Stripe with the secret key from environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil',
-});
+type WebhookPaymentIntent = {
+  id: string;
+  amount: number;
+  metadata: Record<string, string>;
+};
 
 // Handle Stripe webhook events
 export const handleWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string;
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const stripe = getStripeClient();
+
+  if (!stripe) {
+    return res.status(500).json({ error: 'Stripe secret key is not configured' });
+  }
 
   let event;
 
@@ -41,7 +46,7 @@ export const handleWebhook = async (req: Request, res: Response) => {
 };
 
 // Handle successful payment
-async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentIntentSucceeded(paymentIntent: WebhookPaymentIntent) {
   try {
     console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
 
@@ -87,7 +92,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 }
 
 // Handle failed payment
-async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentIntentFailed(paymentIntent: WebhookPaymentIntent) {
   try {
     console.log(`Payment failed for PaymentIntent: ${paymentIntent.id}`);
 

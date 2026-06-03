@@ -84,6 +84,44 @@ def test_clear_model():
     print(json.dumps(response.json(), indent=2))
     return response.status_code == 200
 
+def test_recommend_heuristic():
+    """Test the heuristic recommender endpoint"""
+    # Create sample bikes
+    bikes = [
+        {"bike_id": "b1", "lat": 12.97, "lon": 77.59, "price": 10.0, "rating": 4.5, "bookings_count": 20},
+        {"bike_id": "b2", "lat": 12.98, "lon": 77.60, "price": 8.0, "rating": 4.2, "bookings_count": 15},
+        {"bike_id": "b3", "lat": 13.00, "lon": 77.65, "price": 5.0, "rating": 3.8, "bookings_count": 5},
+    ]
+
+    payload = {
+        "user_location": {"lat": 12.975, "lon": 77.595},
+        "bikes": bikes,
+        "top_n": 3
+    }
+
+    response = requests.post(f"{BASE_URL}/recommend/heuristic", json=payload)
+    print("\nHeuristic Recommend Response:")
+    try:
+        print(json.dumps(response.json(), indent=2))
+    except Exception:
+        print(response.text)
+    return response.status_code == 200
+
+def test_recommend_knn():
+    """Test KNN recommendation endpoint"""
+    payload = {
+        "cc": 200,
+        "horsePower": 20,
+        "pricePerHour": 130
+    }
+    response = requests.post(f"{BASE_URL}/recommend", json=payload)
+    print("\nKNN Recommend Response:")
+    try:
+        print(json.dumps(response.json(), indent=2))
+    except Exception:
+        print(response.text)
+    return response.status_code == 200
+
 if __name__ == "__main__":
     print("=" * 50)
     print("TESTING LINEAR REGRESSION API")
@@ -96,12 +134,17 @@ if __name__ == "__main__":
         ("Predict", test_predict),
         ("Model Info", test_model_info),
         ("Multi-feature", test_multi_feature),
-        ("Clear Model", test_clear_model)
+        ("Clear Model", test_clear_model),
+        ("Heuristic Recommend", test_recommend_heuristic),
+        ("KNN Recommend", test_recommend_knn)
     ]
     
     for test_name, test_func in tests:
         print(f"\n--- Running {test_name} ---")
-        if test_func():
-            print(f"✅ {test_name} passed")
-        else:
-            print(f"❌ {test_name} failed")
+        try:
+            if test_func():
+                print(f"[PASS] {test_name} passed")
+            else:
+                print(f"[FAIL] {test_name} failed")
+        except Exception as e:
+            print(f"[FAIL] {test_name} failed with exception: {e}")

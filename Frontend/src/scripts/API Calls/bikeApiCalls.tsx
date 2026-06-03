@@ -50,6 +50,20 @@ export const getBikesByIndex = async (index: number, filterData?: FilterData, se
     }
 };
 
+export const getRecommendedBikes = async (): Promise<Bike[]> => {
+    try {
+        const token = localStorage.getItem('token');
+        const headers: Record<string, string> = {};
+        if (token) headers['authorization'] = token;
+        const response = await fetch(`${API_URL}/bikes/recommendations`, { headers });
+        const data: Bike[] = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error getting recommended bikes:', error);
+        return [];
+    }
+};
+
 // Get all types
 export const getTypes = async (): Promise<FilterData> => {
     try {
