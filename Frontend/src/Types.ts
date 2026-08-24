@@ -50,6 +50,6 @@ export type BookingData = Bike & {
 export type FilterData = {
     brand: string[];
     cc: number[];
-    type: string[];
+    type?: string[];
     horsePower: number[];
 }

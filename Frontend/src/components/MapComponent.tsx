@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -21,7 +21,7 @@ const defaultCenter = {
 
 // Map click handler component
 const MapClickHandler: React.FC<{ onLocationSelect: (location: { lat: number; lng: number }) => void }> = ({ onLocationSelect }) => {
-  const map = useMapEvents({
+  useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
       onLocationSelect({ lat, lng });

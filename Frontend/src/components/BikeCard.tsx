@@ -102,7 +102,7 @@ const BikeCard: React.FC<BikeCardProp> = ({
                         <div className='flex-grow-1'>
                             <h5 className='card-title'>{bikeModel}</h5>
                             <h6 className='card-subtitle mb-2 text-muted'>{brand}</h6>
-                            <p className='card-text'>Price: {pricePerHour}₹<span style={{ fontWeight: 600 }}>/hr</span></p>
+                            <p className='card-text'>Price: Rs. {pricePerHour}<span style={{ fontWeight: 600 }}>/hr</span></p>
 
                             {/* Availability Display */}
                             <p className={'card-text d-flex align-items-center' + (showAvailable ? " text-success" : " text-danger")}>
@@ -135,7 +135,7 @@ const BikeCard: React.FC<BikeCardProp> = ({
                         <p className='m-0'><b>CC:</b> {cc}</p>
                         <p className='m-0'><b>Horse Power:</b> {horsePower}</p>
                         <p className='m-0'><b>Type:</b> {type}</p>
-                        <p className='m-0'><b>Price:</b> {pricePerHour}₹<span style={{ fontWeight: 600 }}>/hr</span></p>
+                        <p className='m-0'><b>Price:</b> Rs. {pricePerHour}<span style={{ fontWeight: 600 }}>/hr</span></p>
 
                         {/* Modal Availability Display */}
                         <p className={'d-flex align-items-center' + (showAvailable ? " text-success" : " text-danger")}>
@@ -214,7 +214,7 @@ const BikeCard: React.FC<BikeCardProp> = ({
                             </>
                         )}
 
-                        <p className='mt-2'><b>Total Price:</b> ₹{totalPrice}</p>
+                        <p className='mt-2'><b>Total Price:</b> Rs. {totalPrice}</p>
                     </div>
 
                     <div className='d-flex flex-column'>

@@ -1,87 +1,138 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import Menubar from './Menubar';
-import Footer from './Footer';
-import PaymentForm from './PaymentForm';
-import { Bike } from '../Types';
+import { createPaymentIntent, handlePaymentSuccess } from '../scripts/API Calls/paymentApiCalls';
 
-interface PaymentPageProps {}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-const PaymentPage: React.FC<PaymentPageProps> = () => {
-  const navigate = useNavigate();
-  const [paymentData, setPaymentData] = useState<{
-    bikeId: string;
-    startTime: Date;
-    endTime: Date;
-    amount: number;
-  } | null>(null);
+const CheckoutForm: React.FC<{ paymentIntentId: string }> = ({ paymentIntentId }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const navigate = useNavigate();
+    const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Get payment data from URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const bikeId = params.get('bikeId');
-    const startTime = params.get('startTime');
-    const endTime = params.get('endTime');
-    const amount = params.get('amount');
-    
-    if (bikeId && startTime && endTime && amount) {
-      setPaymentData({
-        bikeId: bikeId,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        amount: parseFloat(amount)
-      });
-    } else {
-      // Redirect to home if no payment data
-      navigate('/');
-    }
-  }, [navigate]);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-  const handlePaymentSuccess = () => {
-    // Show success message and redirect to profile page
-    alert('Payment successful! Your bike has been booked.');
-    navigate('/profile');
-  };
+        if (!stripe || !elements) return;
 
-  const handlePaymentCancel = () => {
-    // Redirect back to home page
-    navigate('/');
-  };
+        setProcessing(true);
+        setError(null);
 
-  if (!paymentData) {
+        const { error: submitError } = await elements.submit();
+        if (submitError) {
+            setError(submitError.message || 'Payment failed');
+            setProcessing(false);
+            return;
+        }
+
+        const { error: confirmError } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: `${window.location.origin}/Home`,
+            },
+            redirect: 'if_required',
+        });
+
+        if (confirmError) {
+            setError(confirmError.message || 'Payment failed');
+            setProcessing(false);
+            return;
+        }
+
+        try {
+            await handlePaymentSuccess(paymentIntentId);
+            navigate('/Home');
+        } catch {
+            setError('Payment succeeded but booking creation failed. Please contact support.');
+            setProcessing(false);
+        }
+    };
+
     return (
-      <div className="h-100 d-flex flex-column">
-        <Menubar />
-        <div className="container mt-5 text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <Footer />
-      </div>
+        <form onSubmit={handleSubmit}>
+            <PaymentElement />
+            {error && <div className="alert alert-danger mt-3">{error}</div>}
+            <button
+                type="submit"
+                className="btn btn-dark w-100 mt-3 border-2 border-dark"
+                disabled={!stripe || processing}>
+                {processing ? 'Processing...' : 'Pay Now'}
+            </button>
+        </form>
     );
-  }
+};
 
-  return (
-    <div className="h-100 d-flex flex-column">
-      <Menubar />
-      <div className="container mt-5 mb-5">
-        <div className="row justify-content-center">
-          <div className="col-md-8 col-lg-6">
-            <PaymentForm
-              bikeId={paymentData.bikeId}
-              startTime={paymentData.startTime}
-              endTime={paymentData.endTime}
-              amount={paymentData.amount}
-              onSuccess={handlePaymentSuccess}
-              onCancel={handlePaymentCancel}
-            />
-          </div>
+const PaymentPage: React.FC = (): JSX.Element => {
+    const [searchParams] = useSearchParams();
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
+    const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const bikeId = searchParams.get('bikeId');
+    const startTime = searchParams.get('startTime');
+    const endTime = searchParams.get('endTime');
+    const amount = searchParams.get('amount');
+
+    useEffect(() => {
+        if (!bikeId || !startTime || !endTime) {
+            setError('Missing booking details. Please go back and try again.');
+            setLoading(false);
+            return;
+        }
+
+        const initPayment = async () => {
+            try {
+                const data = await createPaymentIntent(bikeId, startTime, endTime);
+                setClientSecret(data.clientSecret);
+                setPaymentIntentId(data.clientSecret?.split('_secret_')?.[0] || null);
+            } catch (err: any) {
+                setError(err.message || 'Failed to initialize payment');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initPayment();
+    }, [bikeId, startTime, endTime]);
+
+    return (
+        <div className="container-fluid p-0">
+            <Menubar />
+            <main className="container mt-5 p-4 bg-light rounded shadow" style={{ maxWidth: 600 }}>
+                <h1 className="text-center mb-4">Payment</h1>
+
+                {amount && (
+                    <div className="text-center mb-4">
+                        <h5>Total Amount: <strong>Rs. {amount}</strong></h5>
+                    </div>
+                )}
+
+                {loading && (
+                    <div className="text-center">
+                        <div className="spinner-border text-dark" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="mt-2">Initializing payment...</p>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="alert alert-danger">{error}</div>
+                )}
+
+                {clientSecret && paymentIntentId && (
+                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                        <CheckoutForm paymentIntentId={paymentIntentId} />
+                    </Elements>
+                )}
+            </main>
         </div>
-      </div>
-      <Footer />
-    </div>
-  );
+    );
 };
 
 export default PaymentPage;

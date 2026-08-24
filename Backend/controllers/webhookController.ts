@@ -11,13 +11,14 @@ type WebhookPaymentIntent = {
 };
 
 // Handle Stripe webhook events
-export const handleWebhook = async (req: Request, res: Response) => {
+export const handleWebhook = async (req: Request, res: Response): Promise<void> => {
   const sig = req.headers['stripe-signature'] as string;
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
   const stripe = getStripeClient();
 
   if (!stripe) {
-    return res.status(500).json({ error: 'Stripe secret key is not configured' });
+    res.status(500).json({ error: 'Stripe secret key is not configured' });
+    return;
   }
 
   let event;
@@ -27,7 +28,8 @@ export const handleWebhook = async (req: Request, res: Response) => {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret || '');
   } catch (err: any) {
     console.error(`Webhook Error: ${err.message}`);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
   }
 
   // Handle specific events

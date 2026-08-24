@@ -1,12 +1,12 @@
 import apiUrl from './apiUrl';
+import logOut from '../logOut';
 
-const API_BASE_URL = apiUrl + '/api';
+const API_BASE_URL = apiUrl + '/api/payment';
 
-// Create a payment intent for a booking
-export const createPaymentIntent = async (bikeId: string, startTime: Date, endTime: Date) => {
+export const createPaymentIntent = async (bikeId: string, startTime: string, endTime: string) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/payment/create-payment-intent`, {
+    const response = await fetch(`${API_BASE_URL}/create-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -15,42 +15,46 @@ export const createPaymentIntent = async (bikeId: string, startTime: Date, endTi
       body: JSON.stringify({ bikeId, startTime, endTime }),
     });
 
+    if (response.status === 401) {
+      logOut();
+      throw new Error('Unauthorized');
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to create payment intent');
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error creating payment intent:', error);
     throw error;
   }
 };
 
-// Confirm successful payment and create booking
-export const confirmPayment = async (paymentIntentId: string, pickupLocation?: { lat: number; lng: number }) => {
+export const handlePaymentSuccess = async (paymentIntentId: string) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/payment/payment-success`, {
+    const response = await fetch(`${API_BASE_URL}/success`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'authorization': `${token}`,
       },
-      body: JSON.stringify({ 
-        paymentIntentId,
-        pickupLocation: pickupLocation || null
-      }),
+      body: JSON.stringify({ paymentIntentId }),
     });
+
+    if (response.status === 401) {
+      logOut();
+      throw new Error('Unauthorized');
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to confirm payment');
+      throw new Error(errorData.error || 'Failed to complete payment');
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error confirming payment:', error);
     throw error;

@@ -7,6 +7,7 @@ import bookingRoutes from './routes/bookingRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import algorithmRoutes from './routes/algorithmRoutes';
 import recommendationRoutes from './routes/recommendationRoutes';
+import { handleWebhook } from './controllers/webhookController';
 
 import config from './config/config';
 import cors from 'cors';
@@ -24,6 +25,10 @@ connectDB();
  };
 
 app.use(cors());
+
+// Stripe webhook needs raw body — must come before express.json()
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use('/bikeImages', express.static(path.join(__dirname, 'uploads', 'bikeImages')));
@@ -36,9 +41,6 @@ app.use('/api/booking', bookingRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/algorithm', algorithmRoutes);
 app.use('/api', recommendationRoutes);
-
-// Special handling for Stripe webhook
-app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
 
 const PORT = 5000;
 app.listen(PORT, () => {

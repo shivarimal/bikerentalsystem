@@ -101,7 +101,7 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, user }) => {
                         </div>
                         <div className='d-grid' style={{ gridAutoFlow: 'column' }}>
                             <div><span style={{ fontWeight: 500 }}>CC:</span> {booking.bike.cc}</div>
-                            <div><span style={{ fontWeight: 500 }}>Price (₹/hr):</span> {booking.bike.pricePerHour}</div>
+                            <div><span style={{ fontWeight: 500 }}>Price (Rs./hr):</span> {booking.bike.pricePerHour}</div>
                         </div>
                         <div><span style={{ fontWeight: 500 }}>Start Time:</span> {booking.startTime.split('T')[0]}</div>
                         <div><span style={{ fontWeight: 500 }}>End Time:</span> {booking.endTime.split('T')[0]}</div>

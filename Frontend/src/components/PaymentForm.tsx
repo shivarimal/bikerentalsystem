@@ -1,197 +1,242 @@
-import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { createPaymentIntent, confirmPayment } from '../scripts/API Calls/paymentApiCalls';
-import MapComponent from './MapComponent';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createBooking } from '../scripts/API Calls/bookingApiCalls';
 import './PaymentForm.css';
 
-// Initialize Stripe with your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
-
 interface PaymentFormProps {
-  bikeId: string;
-  startTime: Date;
-  endTime: Date;
-  amount: number;
-  onSuccess: () => void;
-  onCancel: () => void;
+  bikeId?: string;
+  startTime?: string;
+  endTime?: string;
+  amount?: number;
 }
 
-interface Location {
-  lat: number;
-  lng: number;
-}
-
-const CheckoutForm: React.FC<PaymentFormProps> = ({ 
-  bikeId, 
-  startTime, 
-  endTime, 
-  amount, 
-  onSuccess, 
-  onCancel 
+export const PaymentForm: React.FC<PaymentFormProps> = ({
+  bikeId = '',
+  startTime = '',
+  endTime = '',
+  amount = 0,
 }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [clientSecret, setClientSecret] = useState('');
+  const navigate = useNavigate();
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'khalti' | 'cash'>('card');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolder, setCardHolder] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  useEffect(() => {
-    // Create a payment intent when the component mounts
-    const fetchPaymentIntent = async () => {
-      try {
-        setLoading(true);
-        const { clientSecret } = await createPaymentIntent(bikeId, startTime, endTime);
-        setClientSecret(clientSecret);
-      } catch (err: any) {
-        setError(err.message || 'Failed to initialize payment');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
 
-    fetchPaymentIntent();
-  }, [bikeId, startTime, endTime]);
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return value;
+    }
+  };
 
-    if (!stripe || !elements) {
-      // Stripe.js has not loaded yet
+  const handlePay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bikeId) {
+      setErrorMsg('No bike selected for booking.');
       return;
     }
 
-    if (!pickupLocation) {
-      setError('Please select a pickup location on the map');
-      return;
+    if (paymentMethod === 'card') {
+      if (!cardNumber || !cardHolder || !expiry || !cvv) {
+        setErrorMsg('Please fill in all card details.');
+        return;
+      }
     }
 
     setLoading(true);
-    setError(null);
-
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      setError('Card element not found');
-      setLoading(false);
-      return;
-    }
+    setErrorMsg('');
 
     try {
-      // Confirm the payment with Stripe
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-        },
-        // You can add metadata about the pickup location if needed
-        // metadata: {
-        //   pickupLat: pickupLocation.lat.toString(),
-        //   pickupLng: pickupLocation.lng.toString()
-        // }
-      });
+      const start = startTime ? new Date(startTime) : new Date();
+      const end = endTime ? new Date(endTime) : new Date(Date.now() + 3600000);
 
-      if (stripeError) {
-        setError(stripeError.message || 'Payment failed');
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Payment succeeded, now confirm with our backend
-        // You can pass the pickup location to your backend here
-        await confirmPayment(paymentIntent.id, pickupLocation);
-        onSuccess();
-      }
+      await createBooking(bikeId, start, end, () => {
+        setPaymentSuccess(true);
+      });
     } catch (err: any) {
-      setError(err.message || 'An error occurred during payment');
+      setErrorMsg(err.message || 'Payment failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (paymentSuccess) {
+    return (
+      <div className="card text-center p-4 border-0 shadow-lg rounded-4 bg-white">
+        <div className="card-body">
+          <div className="mb-3 text-success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" className="bi bi-check-circle-fill" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l5-5.25a.75.75 0 0 0-.02-1.067z"/>
+            </svg>
+          </div>
+          <h3 className="card-title fw-bold text-dark mb-2">Payment Confirmed!</h3>
+          <p className="card-text text-muted mb-4">
+            Your bike booking is successfully confirmed. Get ready for your ride!
+          </p>
+          <div className="d-flex justify-content-center gap-3">
+            <button className="btn btn-primary px-4 py-2 fw-semibold rounded-3" onClick={() => navigate('/Profile')}>
+              View My Bookings
+            </button>
+            <button className="btn btn-outline-secondary px-4 py-2 fw-semibold rounded-3" onClick={() => navigate('/Home')}>
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="payment-form">
-      <div className="form-group mb-4">
-        <label className="form-label">Select Pickup Location</label>
-        <div className="map-container mb-3">
-          <MapComponent 
-            onLocationSelect={setPickupLocation} 
-            height="250px"
-          />
-          {pickupLocation && (
-            <div className="mt-2 text-success">
-              <small>Pickup location selected: {pickupLocation.lat.toFixed(6)}, {pickupLocation.lng.toFixed(6)}</small>
+    <div className="payment-container my-4">
+      <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div className="card-header bg-dark text-white p-4 d-flex align-items-center justify-content-between">
+          <div>
+            <h4 className="mb-1 fw-bold">Complete Your Rental Payment</h4>
+            <p className="mb-0 text-light opacity-75 small">Secure Payment Gateway</p>
+          </div>
+          <div className="fs-3">💳</div>
+        </div>
+
+        <div className="card-body p-4">
+          {errorMsg && (
+            <div className="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+              <strong>Error:</strong> {errorMsg}
+              <button type="button" className="btn-close" onClick={() => setErrorMsg('')}></button>
             </div>
           )}
-        </div>
-      </div>
 
-      <div className="form-group mb-4">
-        <label className="form-label">Card Details</label>
-        <div className="card-element-container p-3 border rounded">
-          <CardElement 
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#424770',
-                  '::placeholder': {
-                    color: '#aab7c4',
-                  },
-                },
-                invalid: {
-                  color: '#9e2146',
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
+          <div className="payment-details mb-4 rounded-3 p-3 bg-light border">
+            <h6 className="fw-bold text-uppercase text-secondary small mb-3">Booking Summary</h6>
+            <div className="d-flex justify-content-between mb-2">
+              <span className="text-muted">Start Date / Time:</span>
+              <span className="fw-semibold text-dark">{startTime ? new Date(startTime).toLocaleString() : 'N/A'}</span>
+            </div>
+            <div className="d-flex justify-content-between mb-2">
+              <span className="text-muted">Return Date / Time:</span>
+              <span className="fw-semibold text-dark">{endTime ? new Date(endTime).toLocaleString() : 'N/A'}</span>
+            </div>
+            <hr />
+            <div className="d-flex justify-content-between align-items-center">
+              <span className="fw-bold text-dark fs-5">Total Amount:</span>
+              <span className="fw-bold text-success fs-4">${amount}</span>
+            </div>
+          </div>
 
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          {error}
-        </div>
-      )}
+          <form onSubmit={handlePay} className="payment-form">
+            <div className="mb-4">
+              <label className="form-label text-dark fw-bold mb-2">Select Payment Method</label>
+              <div className="btn-group w-100" role="group">
+                <button
+                  type="button"
+                  className={`btn ${paymentMethod === 'card' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                  onClick={() => setPaymentMethod('card')}
+                >
+                  💳 Credit / Debit Card
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${paymentMethod === 'cash' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                  onClick={() => setPaymentMethod('cash')}
+                >
+                  💵 Cash on Pickup
+                </button>
+              </div>
+            </div>
 
-      <div className="d-flex justify-content-between mt-4">
-        <button 
-          type="button" 
-          className="btn btn-outline-secondary" 
-          onClick={onCancel}
-          disabled={loading}
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit" 
-          className="btn btn-primary" 
-          disabled={!stripe || loading || !pickupLocation}
-        >
-          {loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Processing...
-            </>
-          ) : (
-            `Pay ₹${amount}`
-          )}
-        </button>
-      </div>
-    </form>
-  );
-};
+            {paymentMethod === 'card' && (
+              <div className="card-element-container p-3 mb-4 rounded-3 border bg-white">
+                <div className="mb-3">
+                  <label className="form-label small text-uppercase text-muted fw-bold">Cardholder Name</label>
+                  <input
+                    type="text"
+                    className="form-control rounded-3"
+                    placeholder="John Doe"
+                    value={cardHolder}
+                    onChange={(e) => setCardHolder(e.target.value)}
+                    required
+                  />
+                </div>
 
-const PaymentForm: React.FC<PaymentFormProps> = (props) => {
-  return (
-    <div className="payment-container">
-      <div className="card bg-glass bg-mid-white p-4">
-        <h3 className="mb-4">Complete Your Payment</h3>
-        <div className="mb-4">
-          <p><strong>Bike:</strong> {props.bikeId}</p>
-          <p><strong>Start Time:</strong> {props.startTime.toLocaleString()}</p>
-          <p><strong>End Time:</strong> {props.endTime.toLocaleString()}</p>
-          <p><strong>Total Amount:</strong> ₹{props.amount}</p>
+                <div className="mb-3">
+                  <label className="form-label small text-uppercase text-muted fw-bold">Card Number</label>
+                  <input
+                    type="text"
+                    className="form-control rounded-3"
+                    placeholder="4532 0000 0000 0000"
+                    maxLength={19}
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                    required
+                  />
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-6">
+                    <label className="form-label small text-uppercase text-muted fw-bold">Expiry Date</label>
+                    <input
+                      type="text"
+                      className="form-control rounded-3"
+                      placeholder="MM/YY"
+                      maxLength={5}
+                      value={expiry}
+                      onChange={(e) => setExpiry(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="col-6">
+                    <label className="form-label small text-uppercase text-muted fw-bold">CVV</label>
+                    <input
+                      type="password"
+                      className="form-control rounded-3"
+                      placeholder="123"
+                      maxLength={4}
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {paymentMethod === 'cash' && (
+              <div className="alert alert-info rounded-3 mb-4">
+                <strong>Pay at Store:</strong> You can pay total amount <strong>${amount}</strong> directly when picking up your bike.
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-dark w-100 py-3 fw-bold fs-5 rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Processing Payment...
+                </>
+              ) : (
+                <>
+                  Confirm & Pay ${amount}
+                </>
+              )}
+            </button>
+          </form>
         </div>
-        <Elements stripe={stripePromise}>
-          <CheckoutForm {...props} />
-        </Elements>
       </div>
     </div>
   );
