@@ -9,7 +9,6 @@ import AdminPage from './components/AdminPage/AdminPage'
 import AboutPage from './components/AboutPage'
 import ContactPage from './components/ContactPage'
 import PaymentPage from './components/PaymentPage'
-import KhaltiCallbackPage from './components/KhaltiCallbackPage'
 
 const App: React.FC = (): JSX.Element => {
     return (
@@ -26,7 +25,6 @@ const App: React.FC = (): JSX.Element => {
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/payment" element={<PaymentPage />} />
-                    <Route path="/payment/khalti-callback" element={<KhaltiCallbackPage />} />
                 </Routes>
             </BrowserRouter>
         </div >
