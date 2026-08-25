@@ -16,6 +16,8 @@ The backend proxies ML/algorithm requests to the Python service. Both servers mu
 | `Frontend/` | `npm run dev` | Start frontend dev server on port 5173 |
 | `algorithm/` | `uvicorn main:app --reload` | Start Python ML API on port 8000 |
 | `algorithm/` | `python test_client.py` | Run all algorithm API tests |
+| `Frontend/` | `npm run lint` | ESLint (strict — zero warnings allowed) |
+| `Frontend/` | `npm run build` | Type-check (`tsc -b`) then Vite build |
 
 The Python service **must** be running before hitting any `/api/algorithm/*` endpoints from the frontend.
 
@@ -27,6 +29,7 @@ The Python service **must** be running before hitting any `/api/algorithm/*` end
 | `POST /api/algorithm/predict` | `algorithmRoutes.ts` → `algorithmController.ts` | `POST /predict` | Predict price from cc + horsePower |
 | `GET /api/algorithm/info` | `algorithmRoutes.ts` → `algorithmController.ts` | `GET /model/info` | Get model status and parameters |
 | `N/A` | `POST /api/recommend` | `POST /recommend` | KNN bike recommendation |
+| `N/A` | `N/A` | `POST /recommend/heuristic` | Heuristic recommendation (popularity, rating, proximity, price) |
 
 ## Algorithm (`algorithm/main.py`)
 
@@ -34,16 +37,38 @@ All ML logic lives in `main.py`:
 - `LinearRegressionScratch` class — from-scratch linear regression (gradient descent + normal equation)
 - `recommend_bikes_knn()` — KNN-based bike recommendation using `NearestNeighbors`
 - `rank_bikes()` / `recommend_heuristic()` — heuristic recommendation by popularity, rating, proximity, price
-- Both `/recommend` (KNN) and `/recommend/heuristic` endpoints
+- Model is persisted to `algorithm/saved_model.pkl` — a pre-trained model already exists
+- Python deps: `algorithm/requirements.txt` (fastapi, scikit-learn, numpy, pandas, etc.)
 
-## Controller Rules
+## Database
 
-- Express controllers **must not** return `res.json(...)` — just call `res.json(...)` without `return` to avoid `Promise<Response>` type mismatches with Express handler signatures.
-- Use explicit `Promise<void>` return type on controller functions.
+- MongoDB on `localhost:27017` — connection string is **hardcoded** in `Backend/config/db.ts` (no env var)
+- Mongoose models in `Backend/models/`: `bike.ts`, `booking.ts`, `user.ts`, `review.ts`, `payment.ts`
 
 ## Stripe Keys
 
-The backend reads `STRIPE_SECRET_KEY` from `Backend/.env`; the frontend reads `VITE_STRIPE_PUBLISHABLE_KEY` from `Frontend/.env`. Both must be real Stripe test keys for the same account. A common mistake: the secret key ends up in the `STRIPE_PUBLISHABLE_KEY` variable while `STRIPE_SECRET_KEY` holds a dummy placeholder — payment intents will return 500.
+The backend reads `STRIPE_SECRET_KEY` from `Backend/.env`; the frontend reads `VITE_STRIPE_PUBLISHABLE_KEY` from `Frontend/.env`. Both must be real Stripe test keys for the same account. **Currently `Backend/.env` is empty** — payment intents will return 500 until a secret key is added. A common mistake: the secret key ends up in the `VITE_STRIPE_PUBLISHABLE_KEY` variable while `STRIPE_SECRET_KEY` holds a dummy placeholder.
+
+Stripe webhook handler is registered at `POST /api/payment/webhook` in `app.ts` and must receive raw body (`express.raw`) — placed before `express.json()`.
+
+## Payment Methods
+
+- **Stripe** — fully integrated (backend controller + frontend Stripe Elements). Requires `STRIPE_SECRET_KEY` in `Backend/.env`.
+- **Khalti** — fully integrated (KPG-2 Web Checkout). Requires `KHALTI_SECRET_KEY`, `KHALTI_API_URL`, `FRONTEND_URL`, `BACKEND_URL` in `Backend/.env`. Uses sandbox API at `https://dev.khalti.com/api/v2`.
+- **Cash on Pickup** — UI option in `PaymentForm.tsx`, calls `createBooking()` directly without payment processing.
+
+### Khalti Payment Flow
+1. User selects Khalti on `/payment` page → frontend creates a pending booking via `POST /api/booking/pending`
+2. Frontend calls `POST /api/payment/khalti/initiate` → backend validates booking, calls Khalti `/epayment/initiate/`, returns `payment_url`
+3. Frontend redirects user to Khalti payment page
+4. User completes payment → Khalti redirects to `GET /api/payment/khalti/callback`
+5. Backend calls Khalti `/epayment/lookup/` to verify (server-to-server), updates Payment + Booking on success
+6. Redirects to `/Profile?payment=success`
+
+### Khalti API Endpoints
+- `POST /api/payment/khalti/initiate` — (auth required) initiate payment
+- `GET /api/payment/khalti/callback` — Khalti redirect callback (no auth)
+- `POST /api/payment/khalti/verify` — (auth required) manual verification via pidx
 
 ## Port Conflicts
 
@@ -51,3 +76,11 @@ Port 5000 is commonly left occupied. Kill with:
 ```powershell
 Stop-Process -Id (Get-NetTCPConnection -LocalPort 5000).OwningProcess -Force
 ```
+
+## Gotchas
+
+- The root `package.json` mixes frontend and backend dependencies (Stripe, React, Leaflet). Each sub-project has its own `package.json` — install deps in `Backend/` and `Frontend/` separately.
+- No backend tests exist. The algorithm service has `test_client.py` as its only test suite.
+- No CI/CD workflows are configured.
+- Frontend lint is strict: `--max-warnings 0` — any warning fails the lint.
+- CORS is configured for `http://localhost:5173` in `app.ts` but `app.use(cors())` is called without options, effectively allowing all origins. The `corsOptions` object is defined but unused.

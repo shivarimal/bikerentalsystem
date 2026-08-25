@@ -7,12 +7,16 @@ const API_URL = `${BASE_URL}/api`;
 export const getBikeCounts = async (filterData?: FilterData, searchData?: string, isAdminReq: boolean = false): Promise<number> => {
     try {
         const token = isAdminReq ? localStorage.getItem('adminToken') : localStorage.getItem('token');
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'authorization': `${token || ''}`
+        };
+        if (isAdminReq) {
+            headers['role'] = 'admin';
+        }
         const response = await fetch(`${API_URL}/bikes`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': `${token}`
-            },
+            headers: headers,
             body: JSON.stringify({ filterData: filterData, searchData: searchData })
         });
         if (response.status === 401) {
@@ -30,12 +34,16 @@ export const getBikeCounts = async (filterData?: FilterData, searchData?: string
 export const getBikesByIndex = async (index: number, filterData?: FilterData, searchData?: string, onSuccess: (data: Bike[]) => void = () => { }, isAdminReq: boolean = false): Promise<any> => {
     try {
         const token = isAdminReq ? localStorage.getItem('adminToken') : localStorage.getItem('token');
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'authorization': `${token || ''}`
+        };
+        if (isAdminReq) {
+            headers['role'] = 'admin';
+        }
         const response = await fetch(`${API_URL}/bikes/${index}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': `${token}`
-            },
+            headers: headers,
             body: JSON.stringify({ filterData: filterData, searchData: searchData })
         });
         if (response.status === 401) {

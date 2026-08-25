@@ -61,6 +61,62 @@ export const createBooking = async (req: Request, res: Response) => {
     }
 };
 
+// Create a pending booking (for Khalti payment flow)
+// Does NOT mark bike as unavailable until payment is confirmed
+export const createPendingBooking = async (req: Request, res: Response) => {
+    try {
+        const { bikeId, startTime, endTime } = req.body;
+        const userId = req.body.user.id;
+
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            res.status(400).json({ error: 'Invalid date format' });
+            return;
+        }
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        if (startDate < currentDate || endDate < currentDate) {
+            res.status(400).json({ error: 'Dates cannot be in the past' });
+            return;
+        }
+        if (startDate > endDate) {
+            res.status(400).json({ error: 'End time must be after start time' });
+            return;
+        }
+        const bike = await Bike.findById(bikeId);
+        if (!bike) {
+            res.status(404).json({ error: 'Bike not found' });
+            return;
+        }
+        if (!bike.isAvailable) {
+            res.status(400).json({ error: 'Bike is not available' });
+            return;
+        }
+
+        // Calculate amount
+        const diffInHours = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)));
+        const paymentAmount = diffInHours * bike.pricePerHour;
+
+        const newBooking: IBooking = new Booking({
+            userId: userId,
+            bikeId: bikeId,
+            bike: bike,
+            startTime,
+            endTime,
+            status: 'booked',
+            paymentAmount,
+            paymentStatus: 'pending',
+        });
+        const savedBooking = await newBooking.save();
+
+        res.status(201).json(savedBooking);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create pending booking' });
+    }
+};
+
 // Get bookings by user ID
 export const getBookingHistoryByUserId = async (req: Request, res: Response) => {
     try {

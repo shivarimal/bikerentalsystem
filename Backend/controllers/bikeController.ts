@@ -16,7 +16,7 @@ export const getAllBikes = async (req: Request, res: Response) => {
 
 // GET /bikes/total
 export const getBikeCount = async (req: Request, res: Response) => {
-    const filterData = req.body.filterData;
+    const filterData = req.body.filterData || {};
     const searchData = req.body.searchData;
     if (filterData && Object.keys(filterData).length > 0) {
         Object.keys(filterData).map((key: string) => {
@@ -26,10 +26,14 @@ export const getBikeCount = async (req: Request, res: Response) => {
         });
         Object.keys(filterData).map((key: string) => {
             filterData[key] = { $in: filterData[key] };
-        })
+        });
     }
     if (searchData && searchData.length > 0) {
         filterData.bikeModel = { $regex: searchData, $options: 'i' };
+    }
+
+    if (!isAdmin(req)) {
+        filterData.isAvailable = true;
     }
 
     try {
@@ -44,7 +48,7 @@ export const getBikeCount = async (req: Request, res: Response) => {
 export const getBikesByIndexAndLimit = async (req: Request, res: Response) => {
     const { index } = req.params;
 
-    const filterData = req.body.filterData;
+    const filterData = req.body.filterData || {};
     const searchData = req.body.searchData;
     if (filterData && Object.keys(filterData).length > 0) {
         Object.keys(filterData).map((key: string) => {
@@ -54,10 +58,14 @@ export const getBikesByIndexAndLimit = async (req: Request, res: Response) => {
         });
         Object.keys(filterData).map((key: string) => {
             filterData[key] = { $in: filterData[key] };
-        })
+        });
     }
     if (searchData && searchData.length > 0) {
         filterData.bikeModel = { $regex: searchData, $options: 'i' };
+    }
+
+    if (!isAdmin(req)) {
+        filterData.isAvailable = true;
     }
 
     try {

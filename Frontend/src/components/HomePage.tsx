@@ -16,17 +16,16 @@ const HomePage: React.FC = (): JSX.Element => {
             if (bikesData.length === 0) {
                 return;
             }
-            console.log(bikesData)
+            console.log(bikesData);
             setAlertData(bikesData);
             setShowAlert(true);
             setTimeout(() => {
                 setShowAlert(false);
             }, 5000);
-        })
-    }, [])
+        });
+    }, []);
     return (
         <>
-        
             {showAlert && <div
                 className='position-fixed t-0 mt-4 d-flex flex-column'
                 style={{ left: '50%', transform: 'translate(-50%,0)', zIndex: 20 }}>
@@ -46,27 +45,27 @@ const HomePage: React.FC = (): JSX.Element => {
             <BikeFinder />
             <Footer />
         </>
-    )
-}
+    );
+};
 
 interface BikeFinderProp {
     header?: string;
 }
 
 export const BikeFinder: React.FC<BikeFinderProp> = ({ header }): JSX.Element => {
-    // const [bikeData, setBikeData] = useState<Bike[]>(sampleData);
     const [bikeData, setBikeData] = useState<Bike[]>([]);
-    const [noOfPages, setNoOfPages] = useState<number>(3)
+    const [noOfPages, setNoOfPages] = useState<number>(3);
 
     const getBikesByPage = async (page: number, filterData?: FilterData, searchData?: string): Promise<void> => {
         if (page <= 0) return;
         getBikesByIndex((page - 1) * 6, filterData, searchData, (data) => {
-            setBikeData(data as Bike[]);
-        })
+            setBikeData((data as Bike[]).filter((bike) => bike.isAvailable !== false));
+        });
         getBikeCounts(filterData, searchData).then((data: any) => {
             setNoOfPages(Math.ceil(data.total / 6));
-        })
-    }
+        });
+    };
+
     return (
         <>
             <div className='row row-cols-1 row-cols-md-2 mx-auto mt-4 mb-4 filter-result-container'>
@@ -78,7 +77,7 @@ export const BikeFinder: React.FC<BikeFinderProp> = ({ header }): JSX.Element =>
                     onPageChange={getBikesByPage} />
             </div>
         </>
-    )
-}
+    );
+};
 
 export default HomePage;
