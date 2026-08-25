@@ -1,79 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { useSearchParams } from 'react-router-dom';
 import Menubar from './Menubar';
-import { createPaymentIntent, handlePaymentSuccess } from '../scripts/API Calls/paymentApiCalls';
 import { initiateKhaltiPayment } from '../scripts/API Calls/khaltiApiCalls';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
-const CheckoutForm: React.FC<{ paymentIntentId: string }> = ({ paymentIntentId }) => {
-    const stripe = useStripe();
-    const elements = useElements();
-    const navigate = useNavigate();
-    const [processing, setProcessing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!stripe || !elements) return;
-
-        setProcessing(true);
-        setError(null);
-
-        const { error: submitError } = await elements.submit();
-        if (submitError) {
-            setError(submitError.message || 'Payment failed');
-            setProcessing(false);
-            return;
-        }
-
-        const { error: confirmError } = await stripe.confirmPayment({
-            elements,
-            confirmParams: {
-                return_url: `${window.location.origin}/Home`,
-            },
-            redirect: 'if_required',
-        });
-
-        if (confirmError) {
-            setError(confirmError.message || 'Payment failed');
-            setProcessing(false);
-            return;
-        }
-
-        try {
-            await handlePaymentSuccess(paymentIntentId);
-            navigate('/Home');
-        } catch {
-            setError('Payment succeeded but booking creation failed. Please contact support.');
-            setProcessing(false);
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubmit}>
-            <PaymentElement />
-            {error && <div className="alert alert-danger mt-3">{error}</div>}
-            <button
-                type="submit"
-                className="btn btn-dark w-100 mt-3 border-2 border-dark"
-                disabled={!stripe || processing}>
-                {processing ? 'Processing...' : 'Pay Now'}
-            </button>
-        </form>
-    );
-};
 
 const PaymentPage: React.FC = (): JSX.Element => {
     const [searchParams] = useSearchParams();
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
-    const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'khalti'>('stripe');
     const [khaltiLoading, setKhaltiLoading] = useState(false);
 
     const bikeId = searchParams.get('bikeId');
@@ -84,23 +17,8 @@ const PaymentPage: React.FC = (): JSX.Element => {
     useEffect(() => {
         if (!bikeId || !startTime || !endTime) {
             setError('Missing booking details. Please go back and try again.');
-            setLoading(false);
-            return;
         }
-
-        const initPayment = async () => {
-            try {
-                const data = await createPaymentIntent(bikeId, startTime, endTime);
-                setClientSecret(data.clientSecret);
-                setPaymentIntentId(data.clientSecret?.split('_secret_')?.[0] || null);
-            } catch (err: any) {
-                setError(err.message || 'Failed to initialize payment');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initPayment();
+        setLoading(false);
     }, [bikeId, startTime, endTime]);
 
     const handleKhaltiPayment = useCallback(async () => {
@@ -159,33 +77,12 @@ const PaymentPage: React.FC = (): JSX.Element => {
                     </div>
                 )}
 
-                {/* Payment Method Toggle */}
-                <div className="mb-4">
-                    <label className="form-label text-dark fw-bold mb-2">Select Payment Method</label>
-                    <div className="btn-group w-100" role="group">
-                        <button
-                            type="button"
-                            className={`btn ${paymentMethod === 'stripe' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                            onClick={() => setPaymentMethod('stripe')}
-                        >
-                            Credit / Debit Card
-                        </button>
-                        <button
-                            type="button"
-                            className={`btn ${paymentMethod === 'khalti' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                            onClick={() => setPaymentMethod('khalti')}
-                        >
-                            Khalti Wallet
-                        </button>
-                    </div>
-                </div>
-
                 {loading && (
                     <div className="text-center">
                         <div className="spinner-border text-dark" role="status">
                             <span className="visually-hidden">Loading...</span>
                         </div>
-                        <p className="mt-2">Initializing payment...</p>
+                        <p className="mt-2">Loading payment details...</p>
                     </div>
                 )}
 
@@ -193,15 +90,7 @@ const PaymentPage: React.FC = (): JSX.Element => {
                     <div className="alert alert-danger">{error}</div>
                 )}
 
-                {/* Stripe Payment */}
-                {paymentMethod === 'stripe' && clientSecret && paymentIntentId && (
-                    <Elements stripe={stripePromise} options={{ clientSecret }}>
-                        <CheckoutForm paymentIntentId={paymentIntentId} />
-                    </Elements>
-                )}
-
-                {/* Khalti Payment */}
-                {paymentMethod === 'khalti' && !loading && (
+                {!loading && !error && (
                     <div className="text-center">
                         <div className="alert alert-info mb-3">
                             You will be redirected to Khalti to complete your payment.

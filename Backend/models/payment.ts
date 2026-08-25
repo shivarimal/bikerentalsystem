@@ -3,7 +3,7 @@ import { Schema, model, Document } from 'mongoose';
 export interface IPayment extends Document {
     userId: Schema.Types.ObjectId;
     bookingId: Schema.Types.ObjectId;
-    paymentMethod: 'stripe' | 'khalti' | 'cash';
+    paymentMethod: 'khalti' | 'cash';
     amount: number;
     amountInPaisa: number;
     paymentStatus: 'initiated' | 'completed' | 'failed' | 'pending' | 'refunded' | 'expired';
@@ -18,7 +18,7 @@ export interface IPayment extends Document {
 const paymentSchema = new Schema<IPayment>({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     bookingId: { type: Schema.Types.ObjectId, ref: 'Booking', required: true },
-    paymentMethod: { type: String, enum: ['stripe', 'khalti', 'cash'], required: true },
+    paymentMethod: { type: String, enum: ['khalti', 'cash'], required: true },
     amount: { type: Number, required: true },
     amountInPaisa: { type: Number, required: true },
     paymentStatus: {

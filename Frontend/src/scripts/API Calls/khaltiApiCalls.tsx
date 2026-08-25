@@ -21,8 +21,15 @@ export const initiateKhaltiPayment = async (bookingId: string) => {
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to initiate Khalti payment');
+            let errorMessage = 'Failed to initiate Khalti payment';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
+            } catch {
+                const text = await response.text();
+                errorMessage = text || errorMessage;
+            }
+            throw new Error(errorMessage);
         }
 
         return await response.json();
@@ -50,8 +57,15 @@ export const verifyKhaltiPayment = async (pidx: string) => {
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to verify Khalti payment');
+            let errorMessage = 'Failed to verify Khalti payment';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
+            } catch {
+                const text = await response.text();
+                errorMessage = text || errorMessage;
+            }
+            throw new Error(errorMessage);
         }
 
         return await response.json();

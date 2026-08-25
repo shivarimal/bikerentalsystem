@@ -45,15 +45,8 @@ All ML logic lives in `main.py`:
 - MongoDB on `localhost:27017` — connection string is **hardcoded** in `Backend/config/db.ts` (no env var)
 - Mongoose models in `Backend/models/`: `bike.ts`, `booking.ts`, `user.ts`, `review.ts`, `payment.ts`
 
-## Stripe Keys
-
-The backend reads `STRIPE_SECRET_KEY` from `Backend/.env`; the frontend reads `VITE_STRIPE_PUBLISHABLE_KEY` from `Frontend/.env`. Both must be real Stripe test keys for the same account. **Currently `Backend/.env` is empty** — payment intents will return 500 until a secret key is added. A common mistake: the secret key ends up in the `VITE_STRIPE_PUBLISHABLE_KEY` variable while `STRIPE_SECRET_KEY` holds a dummy placeholder.
-
-Stripe webhook handler is registered at `POST /api/payment/webhook` in `app.ts` and must receive raw body (`express.raw`) — placed before `express.json()`.
-
 ## Payment Methods
 
-- **Stripe** — fully integrated (backend controller + frontend Stripe Elements). Requires `STRIPE_SECRET_KEY` in `Backend/.env`.
 - **Khalti** — fully integrated (KPG-2 Web Checkout). Requires `KHALTI_SECRET_KEY`, `KHALTI_API_URL`, `FRONTEND_URL`, `BACKEND_URL` in `Backend/.env`. Uses sandbox API at `https://dev.khalti.com/api/v2`.
 - **Cash on Pickup** — UI option in `PaymentForm.tsx`, calls `createBooking()` directly without payment processing.
 
@@ -79,8 +72,8 @@ Stop-Process -Id (Get-NetTCPConnection -LocalPort 5000).OwningProcess -Force
 
 ## Gotchas
 
-- The root `package.json` mixes frontend and backend dependencies (Stripe, React, Leaflet). Each sub-project has its own `package.json` — install deps in `Backend/` and `Frontend/` separately.
+- The root `package.json` mixes frontend and backend dependencies (React, Leaflet). Each sub-project has its own `package.json` — install deps in `Backend/` and `Frontend/` separately.
 - No backend tests exist. The algorithm service has `test_client.py` as its only test suite.
 - No CI/CD workflows are configured.
 - Frontend lint is strict: `--max-warnings 0` — any warning fails the lint.
-- CORS is configured for `http://localhost:5173` in `app.ts` but `app.use(cors())` is called without options, effectively allowing all origins. The `corsOptions` object is defined but unused.
+- CORS is configured for `http://localhost:5173` in `app.ts` but `app.use(cors())` is called without options, effectively allowing all origins.

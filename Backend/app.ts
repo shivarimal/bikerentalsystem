@@ -7,9 +7,7 @@ import bookingRoutes from './routes/bookingRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import algorithmRoutes from './routes/algorithmRoutes';
 import recommendationRoutes from './routes/recommendationRoutes';
-import { handleWebhook } from './controllers/webhookController';
 
-import config from './config/config';
 import cors from 'cors';
 import connectDB from './config/db';
 
@@ -17,22 +15,11 @@ const app = express();
 
 connectDB();
 
- const corsOptions = {
-     origin: 'http://localhost:5173', // Replace this with your frontend's origin
-     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-     allowedHeaders: ['Content-Type', 'Authorization'],
-     credentials: true,
- };
-
 app.use(cors());
-
-// Stripe webhook needs raw body — must come before express.json()
-app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use('/bikeImages', express.static(path.join(__dirname, 'uploads', 'bikeImages')));
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);

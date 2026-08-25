@@ -104,7 +104,13 @@ export const initiateKhaltiPayment = async (req: Request, res: Response): Promis
             body: JSON.stringify(khaltiPayload),
         });
 
-        const khaltiData = await khaltiResponse.json();
+        const rawKhaltiText = await khaltiResponse.text();
+        let khaltiData: any = {};
+        try {
+            khaltiData = JSON.parse(rawKhaltiText);
+        } catch {
+            khaltiData = { error: rawKhaltiText };
+        }
 
         if (!khaltiResponse.ok || !khaltiData.pidx) {
             // Update payment status to failed
@@ -113,7 +119,7 @@ export const initiateKhaltiPayment = async (req: Request, res: Response): Promis
             await payment.save();
 
             res.status(500).json({
-                error: 'Failed to initiate Khalti payment',
+                error: khaltiData.detail || khaltiData.error || 'Failed to initiate Khalti payment',
                 details: khaltiData,
             });
             return;
