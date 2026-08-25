@@ -226,6 +226,13 @@ export const handleKhaltiCallback = async (req: Request, res: Response): Promise
             booking.paymentAmount = payment.amount;
             booking.paymentStatus = 'completed';
             await booking.save();
+
+            // Mark bike as unavailable
+            const bike = await Bike.findById(booking.bikeId);
+            if (bike) {
+                bike.isAvailable = false;
+                await bike.save();
+            }
         }
 
         res.redirect(`${khaltiConfig.frontendUrl}/Profile?payment=success`);
@@ -309,6 +316,13 @@ export const verifyKhaltiPayment = async (req: Request, res: Response): Promise<
                 booking.paymentAmount = payment.amount;
                 booking.paymentStatus = 'completed';
                 await booking.save();
+
+                // Mark bike as unavailable
+                const bike = await Bike.findById(booking.bikeId);
+                if (bike) {
+                    bike.isAvailable = false;
+                    await bike.save();
+                }
             }
 
             res.status(200).json({
